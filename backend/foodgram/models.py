@@ -80,3 +80,16 @@ class IngredientInRecipe(models.Model):
 
     def __str__(self) -> str:
         return f"{self.amount}{self.ingredients}"
+
+class Favorite(models.Model):
+
+    class Meta:
+        verbose_name = ''
+        verbose_name_plural = ''
+
+    def __str__(self):
+        return f'{}{}'
+
+
+class Cart(models.Model):
+    pass
