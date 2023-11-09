@@ -56,6 +56,7 @@ class Recipe(models.Model):
         verbose_name='Автор рецепта',
         on_delete=models.SET_NULL,
         null=True,
+        related_name='recipes',
     )
     name = models.CharField(verbose_name='Название рецепта', max_length=100)
     image = models.ImageField(
