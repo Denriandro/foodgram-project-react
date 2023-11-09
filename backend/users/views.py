@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from users.models import CustomUser, Follow
-from users.serializers import FollowListSerializer
+from users.serializers import FollowSerializer
 
 
 User = get_user_model()
@@ -23,8 +23,8 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
         author = get_object_or_404(User, id=id)
         follow = Follow.objects.create(user=user, author=author)
-        serializer = FollowListSerializer(
-            follow, data=request.data
+        serializer = FollowSerializer(
+            follow, context={'request': request}
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -32,15 +32,22 @@ class CustomUserViewSet(UserViewSet):
     def del_subscribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(User, id=id)
+        if user == author:
+            return Response({
+                'errors': 'Вы не можете отписываться от самого себя'
+            }, status=status.HTTP_400_BAD_REQUEST)
         follow = Follow.objects.filter(user=user, author=author)
         if follow.exists():
             follow.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response({
+            'errors': 'Вы уже отписались'
+        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FollowListViewSet(ListModelMixin, GenericViewSet):
     """Вью для списка авторов, на которых подписан текущий пользователь."""
-    serializer_class = FollowListSerializer
+    serializer_class = FollowSerializer
     pagination_class = PageNumberPagination
 
     def get_queryset(self):

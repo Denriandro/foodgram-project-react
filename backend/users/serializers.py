@@ -31,23 +31,36 @@ class ProfileSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(user=current_user, author=obj.id).exists()
 
 
-class FollowListSerializer(ProfileSerializer):
-    """Сериализатор авторов, на которых подписан текущий юзер."""
-    recipes = MiniRecipeSerializer(many=True, read_only=True)
+class FollowSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='author.id')
+    email = serializers.ReadOnlyField(source='author.email')
+    username = serializers.ReadOnlyField(source='author.username')
+    first_name = serializers.ReadOnlyField(source='author.first_name')
+    last_name = serializers.ReadOnlyField(source='author.last_name')
+    is_subscribed = serializers.SerializerMethodField()
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = Follow
         fields = (
-            'email',
             'id',
+            'email',
             'username',
             'first_name',
             'last_name',
             'is_subscribed',
             'recipes',
-            'recipes_count',
+            'recipes_count'
         )
 
-    def get_recipes_count(self, obj: User):
-        return obj.recipes.count()
+    def get_is_subscribed(self, obj):
+        # .exists()
+        pass
+
+    def get_recipes(self, obj):
+        pass
+
+    def get_recipes_count(self, obj):
+        # .count()
+        pass
