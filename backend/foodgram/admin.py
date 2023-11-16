@@ -1,17 +1,82 @@
 from django.contrib import admin
 
 from foodgram.models import (
-    Tag,
-    Ingredient,
-    Recipe,
     Favorite,
-    Cart,
-    IngredientInRecipe
+    Ingredient,
+    IngredientInRecipe,
+    Recipe,
+    ShoppingCart,
+    Tag
+)
+from foodgram.forms import (
+    RecipeForm,
+    IngredientForm,
+    IngredientInRecipeFormSet
 )
 
-admin.site.register(Tag)
-admin.site.register(Ingredient)
-admin.site.register(Recipe)
-admin.site.register(Favorite)
-admin.site.register(Cart)
-admin.site.register(IngredientInRecipe)
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'color', 'slug',)
+    search_fields = ('name', 'slug',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Ingredient)
+class IngredientAdmin(admin.ModelAdmin):
+    form = IngredientForm
+    list_display = ('name', 'measurement_unit',)
+    search_fields = ('name',)
+    list_filter = ('name',)
+
+
+class IngredientInRecipeInline(admin.TabularInline):
+    model = IngredientInRecipe
+    formset = IngredientInRecipeFormSet
+    extra = 1
+    can_delete = False
+
+
+@admin.register(Recipe)
+class RecipeAdmin(admin.ModelAdmin):
+    form = RecipeForm
+    inlines = [IngredientInRecipeInline]
+
+    list_display = (
+        'id',
+        'name',
+        'author',
+        'text',
+        'count_favorites',
+    )
+    readonly_fields = ('count_favorites',)
+    search_fields = ('author', 'name',)
+    list_filter = ('author', 'name',)
+
+    @admin.display(description='Число добавлений в избранное')
+    def count_favorites(self, obj):
+        return obj.favorite_set.count()
+
+
+@admin.register(ShoppingCart)
+class ShoppingCartAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe',)
+    search_fields = ('user', 'recipe',)
+    list_filter = ('user', 'recipe',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Favorite)
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'recipe',)
+    search_fields = ('user', 'recipe',)
+    list_filter = ('user', 'recipe',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(IngredientInRecipe)
+class IngredientInRecipeAdmin(admin.ModelAdmin):
+    list_display = ('recipe', 'ingredients', 'amount',)
+    search_fields = ('recipe', 'ingredients',)
+    list_filter = ('recipe', 'ingredients',)
+    empty_value_display = '-пусто-'

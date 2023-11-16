@@ -1,6 +1,25 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
+
 from users.models import CustomUser, Follow
 
-admin.site.register(CustomUser, UserAdmin)
-admin.site.register(Follow)
+
+@admin.register(CustomUser)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'email',
+        'username',
+        'first_name',
+        'last_name',
+        'password'
+    )
+    search_fields = ('username', 'email')
+    list_filter = ('username', 'email')
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('user', 'author')
+    search_fields = ('user', 'author')
+    empty_value_display = '-пусто-'

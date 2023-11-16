@@ -1,11 +1,23 @@
 from django.contrib.auth import get_user_model
-from rest_framework import serializers, validators
+from djoser.serializers import UserCreateSerializer
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
 
+from foodgram.models import Recipe
 from users.models import Follow
 
-from api.serializers import MiniRecipeSerializer
-
 User = get_user_model()
+
+
+class MiniRecipeSerializer(serializers.ModelSerializer):
+    """Вложенный сериализатор минирецепта."""
+
+    image = Base64ImageField()
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time')
+        read_only_fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -31,6 +43,20 @@ class ProfileSerializer(serializers.ModelSerializer):
         return Follow.objects.filter(user=current_user, author=obj.id).exists()
 
 
+class CustomUserCreateSerializer(UserCreateSerializer):
+    """Сериализато создания юзера."""
+    class Meta:
+        model = User
+        fields = (
+            'email',
+            'id',
+            'username',
+            'first_name',
+            'last_name',
+            'password',
+        )
+
+
 class FollowSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='author.id')
     email = serializers.ReadOnlyField(source='author.email')
@@ -54,13 +80,20 @@ class FollowSerializer(serializers.ModelSerializer):
             'recipes_count'
         )
 
-    def get_is_subscribed(self, obj):
-        # .exists()
-        pass
+    def get_is_subscribed(*args):
+        return True
 
     def get_recipes(self, obj):
-        pass
+        request = self.context('request')
+        recipes = obj.recipes.all()
+        recipes_limit = request.query_params.get('recipes_limit')
+        if recipes_limit:
+            recipes_limit = int(recipes_limit)
+            recipes = recipes[:recipes_limit]
+        serializer = MiniRecipeSerializer(
+            recipes, many=True, read_only=True)
+        return serializer.data
 
     def get_recipes_count(self, obj):
-        # .count()
-        pass
+        recipes = obj.recipes.all()
+        return recipes.count()

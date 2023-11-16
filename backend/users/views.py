@@ -4,19 +4,21 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.mixins import ListModelMixin
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from users.models import CustomUser, Follow
+from api.pagination import CustomPagination
+from users.models import Follow
 from users.serializers import FollowSerializer
-
 
 User = get_user_model()
 
 
 class CustomUserViewSet(UserViewSet):
-    pagination_class = PageNumberPagination
+
+    permission_classes = (IsAuthenticated,)
+    pagination_class = CustomPagination
 
     @action(methods=['post'], detail=True)
     def subscribe(self, request, id=None):
@@ -48,7 +50,7 @@ class CustomUserViewSet(UserViewSet):
 class FollowListViewSet(ListModelMixin, GenericViewSet):
     """Вью для списка авторов, на которых подписан текущий пользователь."""
     serializer_class = FollowSerializer
-    pagination_class = PageNumberPagination
+    pagination_class = CustomPagination
 
     def get_queryset(self):
         user = self.request.user
