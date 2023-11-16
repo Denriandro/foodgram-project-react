@@ -69,10 +69,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
 
     def get_is_add(self, obj, add):
         user = self.context['request'].user
-        return (
-                user.is_authenticated and
-                add.objects.filter(user=user, recipe=obj).exists()
-        )
+        return (user.is_authenticated
+                and add.objects.filter(user=user, recipe=obj).exists())
 
     def get_is_favorited(self, obj):
         return self.get_is_add(obj, Favorite)
