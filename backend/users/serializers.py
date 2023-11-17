@@ -4,9 +4,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 
 from foodgram.models import Recipe
-from users.models import Follow
-
-User = get_user_model()
+from users.models import Follow, CustomUser
 
 
 class MiniRecipeSerializer(serializers.ModelSerializer):
@@ -25,7 +23,7 @@ class ProfileSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = (
             'email',
             'id',
@@ -46,7 +44,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 class CustomUserCreateSerializer(UserCreateSerializer):
     """Сериализато создания юзера."""
     class Meta:
-        model = User
+        model = CustomUser
         fields = (
             'email',
             'id',
@@ -80,8 +78,20 @@ class FollowSerializer(serializers.ModelSerializer):
             'recipes_count'
         )
 
-    def get_is_subscribed(*args):
-        return True
+    def validate(self, data):
+        following = self.instance
+        user = self.context.get('request').user
+        if Follow.objects.filter(author=following, user=user).exists():
+            raise ValidationError('Вы уже подписаны.')
+        if user == author:
+            raise ValidationError('Подписаться на самого себя нельзя')
+        return data
+
+    def get_is_subscribed(self, obj):
+        current_user = self.context.get('request').user
+        if current_user.is_anonymous:
+            return False
+        return Follow.objects.filter(user=current_user, author=obj.id).exists()
 
     def get_recipes(self, obj):
         request = self.context('request')

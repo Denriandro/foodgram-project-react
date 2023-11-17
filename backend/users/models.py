@@ -70,6 +70,10 @@ class Follow(models.Model):
         verbose_name = 'Подписка'
         verbose_name_plural = 'Подписки'
         constraints = [
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('author')),
+                name='no self subscribe'
+            ),
             models.UniqueConstraint(
                 fields=('user', 'author'),
                 name='unique follow',
@@ -78,9 +82,3 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'{self.user.username} подписан на {self.author.username}'
-
-    def clean(self):
-        super().clean()
-
-        if self.user == self.following:
-            raise ValidationError('Нельзя подписаться на самого себя')
