@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from api.pagination import CustomPagination
 from users.models import Follow, CustomUser
-from users.serializers import FollowSerializer
+from users.serializers import FollowSerializer, UnsubscribeSerializer
 
 
 class CustomUserViewSet(UserViewSet):
@@ -32,17 +32,12 @@ class CustomUserViewSet(UserViewSet):
     def del_subscribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(CustomUser, id=id)
-        if user == author:
-            return Response({
-                'errors': 'Вы не можете отписываться от самого себя'
-            }, status=status.HTTP_400_BAD_REQUEST)
+        serializer = UnsubscribeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         follow = Follow.objects.filter(user=user, author=author)
         if follow.exists():
             follow.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response({
-            'errors': 'Вы уже отписались'
-        }, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FollowListViewSet(ListModelMixin, GenericViewSet):

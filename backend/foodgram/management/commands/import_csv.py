@@ -2,7 +2,7 @@ import csv
 
 from django.core.management.base import BaseCommand
 
-from recipes.models import Ingredient
+from foodgram.models import Ingredient
 
 
 class Command(BaseCommand):
@@ -13,11 +13,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         csv_file = options['csv_file']
+        ingredients = []
         with open(csv_file) as f:
             reader = csv.reader(f)
             for row in reader:
                 name, measurement_unit = row
-                ingredient = Ingredient.objects.create(
+                ingredient = Ingredient(
                     name=name, measurement_unit=measurement_unit
                 )
-                ingredient.save()
+                ingredients.append(ingredient)
+
+        Ingredient.objects.bulk_create(ingredients)

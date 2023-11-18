@@ -7,6 +7,13 @@ from foodgram.models import Recipe
 from users.models import Follow, CustomUser
 
 
+class UnsubscribeSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ('id',)
+
+
 class MiniRecipeSerializer(serializers.ModelSerializer):
     """Вложенный сериализатор минирецепта."""
 
@@ -79,9 +86,9 @@ class FollowSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        following = self.instance
+        author = self.instance
         user = self.context.get('request').user
-        if Follow.objects.filter(author=following, user=user).exists():
+        if Follow.objects.filter(author=author, user=user).exists():
             raise ValidationError('Вы уже подписаны.')
         if user == author:
             raise ValidationError('Подписаться на самого себя нельзя')
