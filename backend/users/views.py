@@ -1,4 +1,3 @@
-from django.contrib.auth import get_user_model
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.decorators import action
@@ -21,7 +20,7 @@ class CustomUserViewSet(UserViewSet):
     @action(methods=['post'], detail=True)
     def subscribe(self, request, id=None):
         user = request.user
-        author = get_object_or_404(User, id=id)
+        author = get_object_or_404(CustomUser, id=id)
         follow = Follow.objects.create(user=user, author=author)
         serializer = FollowSerializer(
             follow, context={'request': request}
